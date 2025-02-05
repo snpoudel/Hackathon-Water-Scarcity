@@ -1,0 +1,7 @@
+# Ignore the data folder and all its subdirectories and files
+data/
+
+# Ignore the dataset folder and all its subdirectories and files
+dataset/
+
+models/
