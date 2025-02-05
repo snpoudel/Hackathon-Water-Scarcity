@@ -1,8 +1,11 @@
-The following repo give you a basic kit to train a baseline model and make a submission. We created a baseline model (Using Quantile Random Forest) that predict water discharged on 52 stations. The evaluation dataset has a weekly frequency and we predict at 4 weeks horizon. Among those 52 stations :
+The following repo give you a basic kit to train a baseline model and make a submission for the *Hackathon on Water Scarcity 2025* : https://www.codabench.org/competitions/4335 . We created several baseline model that predict water discharged on 52 stations. 
+The evaluation dataset has a weekly frequency and we predict at 4 weeks horizon on 6 years period. Among those 52 stations :
 
-14 doesn't have history in the training dataset
-39 have history in the training dataset
-You are to have a different modelisation approach using different models for different water station as long as the submission file is in the right format.
+
+* 14 doesn't have history in the training dataset
+* 39 have history in the training dataset
+
+You are free to have a different modelisation approach using different models for different water station as long as the submission file is in the right format (see codabench).
 
 Setup local environment
 Create virtual env python3 -m venv .venv
