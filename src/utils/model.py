@@ -14,7 +14,6 @@ import joblib
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-# Ensure the project root is in the system path for module imports
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', '..')))
 
 from src.utils.helpers import save_or_create
