@@ -5,11 +5,13 @@ import itertools
 from cartopy import crs as ccrs
 from cartopy import feature as cfeature
 
-def plot_water_flow(dataset_baseline_train,
-                    dataset_baseline_test=None,
-                    max_stations=50,
-                    display=True,
-                    save=False):
+def plot_water_flow(
+        dataset_baseline_train: pd.DataFrame,
+        dataset_baseline_test: pd.DataFrame = None,
+        max_stations: int = 50,
+        display: bool = True,
+        save: bool = False
+    ) -> None:
     """
     Plots the water flow for training and (optionally) testing datasets for each station.
 
@@ -78,7 +80,11 @@ def plot_water_flow(dataset_baseline_train,
         plt.close(fig)
 
 
-def plot_hydrographic_maps(area, gdf_dict, bbox):
+def plot_hydrographic_maps(
+        area: str,
+        gdf_dict: dict,
+        bbox: dict
+    ) -> None:
     """
     Plots four hydrographic maps for a given area.
     

@@ -1,7 +1,11 @@
 from typing import Callable, List, Any
 
 
-def create_predict_function(model_list: List[Any], i: int, model: str) -> Callable:
+def create_predict_function(
+        model_list: List[Any],
+        i: int,
+        model: str
+    ) -> Callable:
     """
     Creates a prediction function based on the specified model type.
 
@@ -18,10 +22,12 @@ def create_predict_function(model_list: List[Any], i: int, model: str) -> Callab
     return predict
 
 
-def create_quantile_function(model_list: List[Any],
-                             i: int,
-                             model: str,
-                             alpha: float = .1) -> Callable:
+def create_quantile_function(
+        model_list: List[Any],
+        i: int,
+        model: str,
+        alpha: float = .1
+    ) -> Callable:
     """
     Creates a quantile prediction function based on the specified model type.
 

@@ -6,7 +6,8 @@ from scipy.spatial import cKDTree  # type: ignore
 from rioxarray.exceptions import NoDataInBounds 
 
 
-def prepare_kdtree(lats: np.ndarray, lons: np.ndarray) -> cKDTree:
+def prepare_kdtree(lats: np.ndarray,
+                   lons: np.ndarray) -> cKDTree:
     """
     Prepare a k-d tree for spatial queries using latitude and longitude.
 
@@ -38,7 +39,10 @@ def inverse_distance_weighting(values: np.ndarray,
 
 
 def interpolate_variable(
-    water_flows: pd.DataFrame, kdtree: cKDTree, variable_data, k: int = 4
+    water_flows: pd.DataFrame,
+    kdtree: cKDTree,
+    variable_data,
+    k: int = 4
 ) -> list:
     """
     Interpolate a variable to match the spatial locations in water_flows
@@ -205,7 +209,22 @@ def interpolate_and_merge_optimized(
     return water_flows
 
 
-def get_altitude(lat, lon, dem):
+def get_altitude(
+    lat: float,
+    lon: float,
+    dem: xr.DataArray
+) -> float:
+    """
+    Get the altitude for a given latitude and longitude using a digital elevation model (DEM).
+
+    Args:
+        lat (float): Latitude coordinate.
+        lon (float): Longitude coordinate.
+        dem (xr.DataArray): Digital elevation model.
+
+    Returns:
+        float: The altitude at the given coordinates.
+    """
     try:
         return dem.sel(x=lon, y=lat, method='nearest').values.item()
     except NoDataInBounds:

@@ -19,7 +19,20 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', '..')))
 from src.utils.helpers import save_or_create
 
 
-def standardize_values(y, stations, station_stats):
+def standardize_values(y: np.ndarray,
+                       stations: np.ndarray,
+                       station_stats: pd.DataFrame) -> np.ndarray:
+    """
+    Standardize values based on station-level statistics.
+
+    Parameters:
+        y (np.ndarray): The values to standardize.
+        stations (np.ndarray): The station codes.
+        station_stats (pd.DataFrame): The station-level statistics.
+
+    Returns:
+        np.ndarray: The standardized values.
+    """
     out = np.empty_like(y, dtype=float)
     for s in np.unique(stations):
         idx = stations == s
@@ -30,11 +43,11 @@ def standardize_values(y, stations, station_stats):
 
 
 def split_dataset(
-    ds, 
-    percentage_split=0.75, 
-    split_time=None, 
-    seed = 42,
-    test_stations_spatial = None
+    ds: pd.DataFrame, 
+    percentage_split: float = 0.75, 
+    split_time: str = None, 
+    seed: int = 42,
+    test_stations_spatial: np.ndarray = None
 ):
     """
     Splits the dataset into training and testing sets based on the specified method.
@@ -334,7 +347,10 @@ def compare_models_per_station(
 
 
 
-def load_models_auto(model_name, model_dir="../../models/"):
+def load_models_auto(
+    model_name: str,
+    model_dir: str = "../../models/"
+) -> List[Any]:
     """
     Auto-load the latest models
     for week0, week1, and week2 from the specified directory.
