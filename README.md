@@ -23,7 +23,7 @@ This repository provides a simple toolkit to train baseline models and generate 
 
 ## Submission
 
-After running the notebooks, create your submission file (`data/evaluation/predictions.zip`) and upload it to Codabench.
+After running the notebooks, create your submission file (`data/evaluation/predictions.zip`) and upload it to [Codabench](https://www.codabench.org/competitions/4335).
 
 ## Setup Local Environment
 
