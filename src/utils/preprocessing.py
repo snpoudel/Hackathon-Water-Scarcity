@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd  # type: ignore
 from scipy.spatial import cKDTree  # type: ignore
 from rioxarray.exceptions import NoDataInBounds 
+import xarray as xr
 
 
 def prepare_kdtree(lats: np.ndarray,

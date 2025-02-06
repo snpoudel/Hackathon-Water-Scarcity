@@ -350,7 +350,7 @@ def compare_models_per_station(
 def load_models_auto(
     model_name: str,
     model_dir: str = "../../models/"
-) -> List[Any]:
+) -> List[any]:
     """
     Auto-load the latest models
     for week0, week1, and week2 from the specified directory.
