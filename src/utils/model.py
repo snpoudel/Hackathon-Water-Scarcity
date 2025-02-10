@@ -266,6 +266,7 @@ def generate_boxplots(
         save_path = f'../../figures/models/{prefix}_{current_date}_boxplots.png'
         save_or_create(plt, save_path)
 
+
 def compare_models_per_station(
     y: np.ndarray,
     predictions: List[dict],
@@ -346,7 +347,6 @@ def compare_models_per_station(
                       display)
 
 
-
 def load_models_auto(
     model_name: str,
     model_dir: str = "../../models/"
@@ -389,3 +389,25 @@ def load_models_auto(
         loaded_mapie.append(joblib.load(full_path))
 
     return loaded_mapie
+
+
+def average_ebms(
+        ebm_list
+    ):
+    """
+    Takes a list of trained EBM models and returns a single EBM
+    whose intercept and shape functions (term_scores_) are averaged.
+    """
+    # 1) Make a deep copy of the first EBM to use as a "template"
+    avg_ebm = copy.deepcopy(ebm_list[0])
+    
+    # 2) Average the intercepts
+    intercepts = [ebm.intercept_ for ebm in ebm_list]
+    avg_ebm.intercept_ = np.mean(intercepts, axis=0)
+
+    # 3) Average the term scores
+    for i in range(len(avg_ebm.term_scores_)):
+        scores_i = [ebm.term_scores_[i] for ebm in ebm_list]
+        avg_ebm.term_scores_[i] = np.mean(scores_i, axis=0)
+
+    return avg_ebm

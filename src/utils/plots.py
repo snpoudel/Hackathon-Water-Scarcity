@@ -5,9 +5,10 @@ import itertools
 from cartopy import crs as ccrs
 from cartopy import feature as cfeature
 
-def plot_water_flow(
-        dataset_baseline_train: pd.DataFrame,
-        dataset_baseline_test: pd.DataFrame = None,
+def plot_water_flows(
+        train: pd.DataFrame,
+        test_spatio: pd.DataFrame = None,
+        test_spatio_tempo: pd.DataFrame = None,
         max_stations: int = 50,
         display: bool = True,
         save: bool = False
@@ -27,12 +28,16 @@ def plot_water_flow(
         None. Displays or saves the generated plot.
     """
     # Prepare training data and, if available, testing data
-    train = dataset_baseline_train.reset_index().rename(columns={"water_flow_week1": "water_flow_train"})
-    if dataset_baseline_test is not None:
-        test = dataset_baseline_test.reset_index().rename(columns={"water_flow_week1": "water_flow_test"})
-        data = pd.concat([train, test], ignore_index=False)
-    else:
-        data = train.copy()
+    train = train.reset_index().rename(columns={"water_flow_week1": "water_flow_train"})
+    if test_spatio is not None:
+        test_spatio = test_spatio.reset_index().rename(columns={"water_flow_week1": "water_flow_ts"})
+    if test_spatio_tempo is not None:
+        test_spatio_tempo = test_spatio_tempo.reset_index().rename(columns={"water_flow_week1": "water_flow_tst"})
+    
+    data = pd.concat([train,
+                      test_spatio,
+                      test_spatio_tempo], ignore_index=False)
+
 
     # Convert the ObsDate column to datetime
     data['ObsDate'] = pd.to_datetime(data['ObsDate'])
@@ -52,9 +57,12 @@ def plot_water_flow(
         ax.plot(station_data['ObsDate'], station_data['water_flow_train'],
                 label='Training', color='blue')
         # Plot testing data if available
-        if dataset_baseline_test is not None:
-            ax.plot(station_data['ObsDate'], station_data['water_flow_test'],
-                    label='Testing', color='orange')
+        if test_spatio is not None:
+            ax.plot(station_data['ObsDate'], station_data['water_flow_ts'],
+                    label='Temporal Split', color='orange')
+        if test_spatio_tempo is not None:
+            ax.plot(station_data['ObsDate'], station_data['water_flow_tst'],
+                    label='Spatio-temporal Split', color='red')
         ax.set_title(f'Water Flow for Station: {station_code}')
         ax.set_xlabel('Observation Date')
         ax.set_ylabel('Average weekly water Flow (m³/s)')

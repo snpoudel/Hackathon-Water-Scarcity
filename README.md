@@ -30,7 +30,7 @@ After running the notebooks, create your submission file (`data/evaluation/predi
 1. **Python Version**
 This repository was developed and tested using Python 3.12.6. For best compatibility, please ensure you are using Python 3.12 or a newer version.
 
-2. **Create your venv**
+2. **Create your venv - Mac version**
 
 ```shell
 # Create a virtual environment
