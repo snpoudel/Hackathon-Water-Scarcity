@@ -125,3 +125,69 @@ def plot_hydrographic_maps(
     
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.show()
+
+
+def plot_water_flow_predictions(dataset,
+                                prediction,
+                                y_pis,
+                                prefixe,
+                                save = False,
+                                display = True):
+    """
+    Plots predictions vs. actual water flow for each station in the test dataset.
+
+    Args:
+        dataset_baseline_test (pd.DataFrame): Baseline test dataset.
+        prediction (array-like): Model predictions for the test dataset.
+        test_stations (list): List of test station names (used if SPLIT is "spatial").
+        prefixe (str): Prefix for the plot filename (e.g., "lstm").
+        save (bool): Whether to save the plot as a PNG file (default: False).
+        display (bool): Whether to display the plot (default: True).
+    
+    Returns:
+        None. Saves the plot as a PNG file in the specified directory.
+    """
+    dataset_baseline_test = dataset.copy()
+    dataset_baseline_test["predictions"] = prediction
+    if len(y_pis.shape) == 3:
+        dataset_baseline_test["predictions_up"] = y_pis[:, 1, 0]
+        dataset_baseline_test["predictions_dw"] = y_pis[:, 0, 0]
+    else:
+        dataset_baseline_test["predictions_up"] = y_pis[:, 1]
+        dataset_baseline_test["predictions_dw"] = y_pis[:, 0]
+    dataset_baseline_test = dataset_baseline_test.reset_index()
+
+    unique_names = dataset_baseline_test['station_code'].unique()
+    
+    fig, axes = plt.subplots(len(unique_names), 1, figsize=(20, 5 * len(unique_names)), sharex=True)
+    if len(unique_names) == 1:  # Handle the case where there's only one station
+        axes = [axes]
+
+    for ax, name in zip(axes, unique_names):
+        station_data = dataset_baseline_test[dataset_baseline_test['station_code'] == name]
+
+        ax.plot(station_data['ObsDate'], station_data["predictions"], label='Predictions', color='red')
+        ax.plot(station_data['ObsDate'], station_data["predictions_up"], label='predictions_up', color='orange')
+        ax.plot(station_data['ObsDate'], station_data["predictions_dw"], label='predictions_dw', color='orange')
+        ax.plot(station_data['ObsDate'], station_data["water_flow_week1"], label='Water Flow', color='blue')
+
+        ax.set_title(f'Water Flow for Station: {name}')
+        ax.set_xlabel('Observation Date')
+        ax.set_ylabel('Water Flow')
+        ax.legend()
+        ax.grid(True)
+
+        ax.tick_params(axis='x', rotation=45)
+
+        ax.xaxis.set_major_locator(plt.MaxNLocator(10))
+
+    plt.tight_layout()
+
+    if save:
+        current_date = pd.Timestamp.now().strftime('%d-%m-%Y_%H-%M')
+        save_path = f'../../figures/models/{prefixe}_{current_date}_wf_predictions.png'
+        fig.savefig(save_path)
+        plt.close(fig)
+        print(f"Plot saved to {save_path}")
+    elif display:
+        plt.show()
