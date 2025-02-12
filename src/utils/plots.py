@@ -166,18 +166,19 @@ def plot_water_flow_predictions(dataset,
     for ax, name in zip(axes, unique_names):
         station_data = dataset_baseline_test[dataset_baseline_test['station_code'] == name]
 
-        ax.plot(station_data['ObsDate'], station_data["predictions"], label='Predictions', color='red')
-        ax.plot(station_data['ObsDate'], station_data["predictions_up"], label='predictions_up', color='orange')
-        ax.plot(station_data['ObsDate'], station_data["predictions_dw"], label='predictions_dw', color='orange')
-        ax.plot(station_data['ObsDate'], station_data["water_flow_week1"], label='Water Flow', color='blue')
+        ax.plot(station_data['ObsDate'], station_data["predictions"], label='Predictions', color='red', linewidth=2)
+        ax.plot(station_data['ObsDate'], station_data["predictions_up"], label='predictions_up', color='orange', linewidth=1)
+        ax.plot(station_data['ObsDate'], station_data["predictions_dw"], label='predictions_dw', color='orange', linewidth=1)
+        ax.plot(station_data['ObsDate'], station_data["water_flow_week1"], label='Water Flow', color='blue', linewidth=2)
 
-        ax.set_title(f'Water Flow for Station: {name}')
-        ax.set_xlabel('Observation Date')
-        ax.set_ylabel('Water Flow')
+        ax.set_title(f'Water Flow for Station: {name}', fontsize=24)
+        ax.set_xlabel('Observation Date', fontsize=18)
+        ax.set_ylabel('Water Flow', fontsize=18)
         ax.legend()
         ax.grid(True)
-
-        ax.tick_params(axis='x', rotation=45)
+        ax.legend(fontsize=12)
+        ax.tick_params(axis='x', rotation=45, labelsize=12)
+        ax.tick_params(axis='y', labelsize=12)
 
         ax.xaxis.set_major_locator(plt.MaxNLocator(10))
 

@@ -141,8 +141,8 @@ def compute_per_station_metrics(
         y_true_s = y_true_std[idx]
         y_pred_s = y_pred_std[idx]
 
-        rmse_s = sqrt(mean_squared_error(y_s, y_pred_s))
-        mae_s = mean_absolute_error(y_s, y_pred_s)
+        rmse_s = sqrt(mean_squared_error(y_true_s, y_pred_s))
+        mae_s = mean_absolute_error(y_true_s, y_pred_s)
 
         if has_intervals:
             y_lower_s = y_pred_lower_std[idx]
