@@ -87,7 +87,7 @@ def split_dataset(
 def get_station_stats(
     y: np.ndarray, 
     station_code: np.ndarray
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+) -> pd.DataFrame:
     """
     Return station-level statistics (mean, std, min, max).
     """
@@ -138,11 +138,11 @@ def compute_per_station_metrics(
 
     for s in station_list:
         idx = (stations == s)
-        y_s = y_true_std[idx]
+        y_true_s = y_true_std[idx]
         y_pred_s = y_pred_std[idx]
 
-        rmse_s = sqrt(mean_squared_error(y_s, y_pred_s))
-        mae_s = mean_absolute_error(y_s, y_pred_s)
+        rmse_s = sqrt(mean_squared_error(y_true_s, y_pred_s))
+        mae_s = mean_absolute_error(y_true_s, y_pred_s)
 
         if has_intervals:
             y_lower_s = y_pred_lower_std[idx]
@@ -152,18 +152,18 @@ def compute_per_station_metrics(
             sigma_s = (y_upper_s - y_lower_s) / 3.29
 
             # Compute Gaussian negative log-likelihood
-            nll_s = (1 / len(y_s)) * np.sum(
-               np.log(sigma_s) + abs((y_s - y_pred_s)) / abs(2 * sigma_s)
+            nll_s = (1 / len(y_true_s)) * np.sum(
+               np.log(sigma_s) + abs((y_true_s - y_pred_s)) / abs(2 * sigma_s)
             )
 
-            coverage_s = np.mean((y_s >= y_lower_s) & (y_s <= y_upper_s))
+            coverage_s = np.mean((y_true_s >= y_lower_s) & (y_true_s <= y_upper_s))
             interval_size_s = np.mean(y_upper_s - y_lower_s)
         else:
-            sigma_s = np.std(y_s - y_pred_s)  # Fallback estimation
+            sigma_s = np.std(y_true_s - y_pred_s)  # Fallback estimation
             sigma_s = max(sigma_s, 1e-6)  # Ensure non-zero, positive sigma
 
-            nll_s = (1 / len(y_s)) * np.sum(
-                np.log(sigma_s) + abs((y_s - y_pred_s)) / abs(2 * sigma_s)
+            nll_s = (1 / len(y_true_s)) * np.sum(
+                np.log(sigma_s) + abs((y_true_s - y_pred_s)) / abs(2 * sigma_s)
             )
 
             coverage_s = np.nan
@@ -411,3 +411,52 @@ def average_ebms(
         avg_ebm.term_scores_[i] = np.mean(scores_i, axis=0)
 
     return avg_ebm
+
+
+def custom_log_likelihood(estimator, X, y_true, cv_data, station_stats, alpha=.1):
+    """
+    Custom log-likelihood scoring function.
+    
+    Parameters:
+        estimator : The fitted estimator with a .predict method.
+        X : DataFrame of predictor variables.
+        y_true : True target values.
+        cv_data : Full DataFrame that includes extra columns (e.g., "station_code").
+        station_stats : Station-level statistics needed for standardization.
+        alpha : Significance level (default from ALPHA).
+        
+    Returns:
+        nll_s : Computed log-likelihood score.
+    """
+    # Align y_true with X.
+    y_true = pd.Series(y_true.values, index=X.index)
+    
+    # Get predictions.
+    y_pred = estimator.predict(X)
+    
+    # Get quantile predictions.
+    y_quantiles = estimator.predict(X, quantiles=[alpha / 2, 1 - alpha / 2])
+    
+    # Retrieve station codes from cv_data using X's indices.
+    current_stations = cv_data.loc[X.index, "station_code"].to_numpy()
+        
+    # Standardize the values.
+    y_true_std = standardize_values(y_true.to_numpy(), current_stations, station_stats)
+    y_pred_std = standardize_values(y_pred, current_stations, station_stats)
+    y_lower_std, y_upper_std = standardize_prediction_intervals(y_quantiles, current_stations, station_stats)
+    
+    # Compute sigma from the prediction interval.
+    sigma_std = (y_upper_std - y_lower_std) / 3.29
+    sigma_std = np.maximum(sigma_std, 1e-6)
+    
+    # Compute the negative log-likelihood.
+    nll_s = (1 / len(y_true_std)) * np.sum(
+        np.log(sigma_std) + np.abs(y_true_std - y_pred_std) / (2 * sigma_std)
+    )
+    
+    # Optionally, print some diagnostics.
+    coverage_s = np.mean((y_true_std >= y_lower_std) & (y_true_std <= y_upper_std))
+    interval_size_s = np.mean(y_upper_std - y_lower_std)
+    print(f"Fold: coverage = {coverage_s:.3f}, interval size = {interval_size_s:.3f}")
+    
+    return nll_s
