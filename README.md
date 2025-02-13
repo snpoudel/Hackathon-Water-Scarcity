@@ -11,15 +11,18 @@ This repository provides a simple toolkit to train baseline models and generate 
 
 ## Notebook Structure
 
-1. **Preprocessing**
+0. **Preprocessing**
    - *01 - Data Preprocessing*
    - *02 - Feature Engineering*
 
-2. **Training**
+1. **Training and Submission**
    - *03 - Modelisation*
-
-3. **Submission**
    - *01 - Prediction Computation*
+
+2. **Exploration**
+   - *01 - Performance Comparison*
+   - *02 - Single Model Optimisation*
+
 
 ## Submission
 
