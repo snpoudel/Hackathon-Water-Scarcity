@@ -5,7 +5,7 @@ def create_predict_function(
         model_list: List[Any],
         i: int,
         model: str
-    ) -> Callable:
+        ) -> Callable:
     """
     Creates a prediction function based on the specified model type.
 
@@ -18,16 +18,19 @@ def create_predict_function(
         Callable: A function that takes input data X and returns predictions.
     """
     def predict(X):
-        return model_list[i].predict(X)[0] if model == "mapie" else model_list[i].predict(X)
+        if model == "mapie":
+            return model_list[i].predict(X)[0]
+        else:
+            return model_list[i].predict(X)
     return predict
 
 
 def create_quantile_function(
-        model_list: List[Any],
+        models: List[Any],
         i: int,
         model: str,
         alpha: float = .1
-    ) -> Callable:
+        ) -> Callable:
     """
     Creates a quantile prediction function based on the specified model type.
 
@@ -38,12 +41,13 @@ def create_quantile_function(
         alpha (float): The confidence level for the quantile prediction.
 
     Returns:
-        Callable: A function that takes input data X and returns quantile predictions.
+        Callable: A function that takes input data X 
+        and returns quantile predictions.
     """
     def predict_quantile(X):
         if model == "mapie":
-            return model_list[i].predict(X)[1]
+            return models[i].predict(X)[1]
         elif model == "qrf":
-            return model_list[i].predict(X, quantiles=[alpha / 2, 1 - alpha / 2])
+            return models[i].predict(X, quantiles=[alpha / 2, 1 - alpha / 2])
         raise ValueError(f"Unsupported model type: {model}")
     return predict_quantile

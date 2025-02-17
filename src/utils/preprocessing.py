@@ -202,7 +202,7 @@ def interpolate_and_merge_optimized(
     water_flows = prepare_and_merge_region_data_optimized(
         water_flows, interpolated, value_name, dtype_column
     )
-    
+
     # Free up memory
     del interpolated
     gc.collect()
@@ -216,7 +216,8 @@ def get_altitude(
     dem: xr.DataArray
 ) -> float:
     """
-    Get the altitude for a given latitude and longitude using a digital elevation model (DEM).
+    Get the altitude for a given latitude and longitude using
+    a digital elevation model (DEM).
 
     Args:
         lat (float): Latitude coordinate.
