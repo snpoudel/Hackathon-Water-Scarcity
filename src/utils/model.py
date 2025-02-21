@@ -1,5 +1,4 @@
 import os
-import sys
 import re
 import random
 from math import sqrt
@@ -13,9 +12,7 @@ from tabulate import tabulate
 import joblib
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..', '..')))
-
-from src.utils.helpers import save_or_create
+from .helpers import save_or_create
 
 
 def standardize_values(y: np.ndarray,
@@ -37,7 +34,7 @@ def standardize_values(y: np.ndarray,
         idx = stations == s
         min = station_stats.loc[s, 'min']
         max = station_stats.loc[s, 'max']
-        out[idx] = (y[idx] - min) * 100.0 / (max - min) 
+        out[idx] = (y[idx] - min) * 100.0 / (max - min)
     return out
 
 
@@ -49,12 +46,12 @@ def split_dataset(
     test_stations: np.ndarray = None
 ):
     """
-    Splits the dataset into training and testing sets 
+    Splits the dataset into training and testing sets
     based on the specified method.
 
     Parameters:
         ds (pd.DataFrame): The dataset containing data.
-        percentage_split (float): The proportion of stations
+        p (float): The proportion of stations
         for the training set.
         time (str, optional): The timestamp for temporal split.
         seed (int): Random seed for reproducibility (default is 42).
@@ -89,7 +86,7 @@ def split_dataset(
 
 
 def get_station_stats(
-    y: np.ndarray, 
+    y: np.ndarray,
     station_code: np.ndarray
 ) -> pd.DataFrame:
     """
@@ -110,10 +107,23 @@ def get_station_stats(
 
 
 def standardize_prediction_intervals(
-    y_pred_intervals: np.ndarray, 
-    stations: np.ndarray, 
+    y_pred_intervals: np.ndarray,
+    stations: np.ndarray,
     station_stats: pd.DataFrame
 ) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Standardizes the prediction interval values for a set of
+    stations using the provided station statistics.
+
+    Args:
+        y_pred_intervals (np.ndarray): the predicted interval values.
+        stations (np.ndarray): station codes.
+        station_stats (pd.DataFrame): statistics for each station.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: standardized lower and
+            upper prediction interval values.
+    """
     if y_pred_intervals is None:
         return None, None
 
@@ -143,21 +153,37 @@ def compute_per_station_metrics(
     y_true_std: np.ndarray,
     y_pred_std: np.ndarray,
     stations: np.ndarray,
-    y_pred_intervals: np.ndarray = None,
     y_pred_lower_std: np.ndarray = None,
     y_pred_upper_std: np.ndarray = None
 ) -> pd.DataFrame:
     """
-    Compute scaled RMSE, scaled MAE, coverage, and scaled interval size 
-    for each station. Returns a DataFrame of station-level metrics.
+    Compute station-level performance metrics including scaled RMSE,
+    scaled MAE, coverage, scaled prediction interval size,
+    and Gaussian negative log-likelihood.
+
+    Parameters:
+        y_true_std (np.ndarray): Standardized ground truth.
+        y_pred_std (np.ndarray): Array of predicted standardized predictions.
+        stations (np.ndarray): Station codes.
+        y_pred_lower_std (np.ndarray): lower prediction interval values.
+        y_pred_upper_std (np.ndarray): upper prediction interval values.
+
+    Returns:
+    pd.DataFrame
+        Dataframe with the following metrics:
+            - station_code: Identifier for the station.
+            - scaled_rmse: Scaled Root Mean Squared Error for the station.
+            - scaled_mae: Scaled Mean Absolute Error for the station.
+            - coverage
+            - scaled_interval_size: Average size of the prediction interval
+            - log_likelihood: Gaussian negative log-likelihood.
     """
     station_list = np.unique(stations)
 
     records = []
 
     has_intervals = (
-        (y_pred_intervals is not None) and 
-        (y_pred_lower_std is not None) and 
+        (y_pred_lower_std is not None) and
         (y_pred_upper_std is not None)
     )
 
@@ -181,7 +207,8 @@ def compute_per_station_metrics(
                np.log(sigma_s) + abs((y_true_s - y_pred_s)) / abs(2 * sigma_s)
             )
 
-            coverage_s = np.mean((y_true_s >= y_lower_s) & (y_true_s <= y_upper_s))
+            coverage_s = np.mean(
+                (y_true_s >= y_lower_s) & (y_true_s <= y_upper_s))
             interval_size_s = np.mean(y_upper_s - y_lower_s)
         else:
             sigma_s = np.std(y_true_s - y_pred_s)  # Fallback estimation
@@ -208,29 +235,35 @@ def compute_per_station_metrics(
 
 
 def summarize_metrics(
-    metrics: pd.DataFrame, 
-    model_name: str, 
-    dataset_type: str, 
-    alpha: float, 
-    beta: float
+    metrics: pd.DataFrame,
+    model_name: str,
+    dataset_type: str
 ) -> pd.DataFrame:
     """
     Given a station-level metrics DataFrame, compute average (per station)
     values and a final score.
-    Returns a single-row DataFrame containing 
-    the summary metrics for the model.
+
+    Parameters:
+        metrics (pd.DataFrame): station-level metrics.
+        model_name (str): The name of the model.
+        dataset_type (str): The type of dataset used (e.g., "test").
+
+    Returns:
+    pd.DataFrame
+        A DataFrame containing the final model-level metrics
+        (scaled RMSE, log-likelihood, scaled MAE, coverage,
+        scaled interval size).
     """
     rmse_final = np.nanmean(metrics['scaled_rmse'])
     mae_final = np.nanmean(metrics['scaled_mae'])
     log_likelihood = np.nanmean(metrics['log_likelihood'])
-    
+
     if metrics['coverage'].count() == 0:
         coverage_final = np.nan
         interval_size_final = np.nan
     else:
         coverage_final = np.nanmean(metrics['coverage'])
         interval_size_final = np.nanmean(metrics['scaled_interval_size'])
-    score = alpha * rmse_final + beta * interval_size_final
 
     data = {
         "model": [model_name],
@@ -240,7 +273,6 @@ def summarize_metrics(
         "scaled_mae": [mae_final],
         "coverage": [coverage_final],
         "scaled_interval_size": [interval_size_final],
-        "final_score": [score]
     }
     return pd.DataFrame(data)
 
@@ -267,8 +299,8 @@ def print_summary_table(
 
 
 def generate_boxplots(
-    station_metrics_df: pd.DataFrame, 
-    column_to_display: str, 
+    station_metrics_df: pd.DataFrame,
+    column_to_display: str,
     prefix: str,
     title: str,
     save: bool = False,
@@ -310,28 +342,27 @@ def compare_models_per_station(
     Evaluate the performance of one or multiple models at the station level.
     Scaled interval size for each station.
 
-    Parameters
-    ----------
-    y : np.ndarray
-        Ground truth values for the test set.
-    predictions : List[dict]
-        A list of prediction dictionaries. Each dictionary must include:
-          - "model": A string with the model name.
-          - "dataset": Either "train" or "test".
-          - "prediction": A 1D array of predicted values.
-          - "prediction_interval" (optional): A 2D or 3D array of interval bounds.
-    station_code : np.ndarray
-        An array of station identifiers corresponding to each entry in y.
-    prefix : str, optional
-        A string prefix for saving figures.
-    column_to_display : str, optional
-        The column to display in the boxplots.
-    title : str, optional
-        The title of the boxplots.
-    save : bool, optional
-        If True, the boxplots are saved.
-    display : bool, optional
-        If True, the boxplots are displayed.
+    Parameters:
+        y : np.ndarray
+            Ground truth values for the test set.
+        predictions : List[dict]
+            A list of prediction dictionaries. Each dictionary must include:
+            - "model": A string with the model name.
+            - "dataset": Either "train" or "test".
+            - "prediction": A 1D array of predicted values.
+            - "prediction_interval" (optional): interval bounds.
+        station_code : np.ndarray
+            An array of station identifiers corresponding to each entry in y.
+        prefix : str, optional
+            A string prefix for saving figures.
+        column_to_display : str, optional
+            The column to display in the boxplots.
+        title : str, optional
+            The title of the boxplots.
+        save : bool, optional
+            If True, the boxplots are saved.
+        display : bool, optional
+            If True, the boxplots are displayed.
     """
     all_station_metrics = []
 
@@ -381,9 +412,9 @@ def load_models_auto(
     for week0, week1, and week2 from the specified directory.
 
     Parameters:
-    - model_name (str): The base model name to search for 
-    (e.g., "mapie_quantile").
-    - model_dir (str): Directory where models are stored.
+        model_name (str): The base model name to search for
+        (e.g., "mapie_quantile").
+        dir (str): Directory where models are stored.
 
     Returns:
     - List of loaded models in the order [week0, week1, week2].
@@ -398,7 +429,7 @@ def load_models_auto(
         if match:
             date_str, week_str = match.groups()
             week_num = int(week_str)
-            date_obj = datetime.strptime(date_str, "%Y-%m-%d_%H-%M-%S")            
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d_%H-%M-%S")
             if week_num not in latest_paths:
                 latest_paths[week_num] = (date_obj, fname)
             else:
@@ -409,7 +440,8 @@ def load_models_auto(
     loaded_mapie = []
     for i in [0, 1, 2, 3]:
         if i not in latest_paths:
-            raise ValueError(f"No mapie_quantile model found for week{i} in {dir}.")
+            raise ValueError(
+                f"No mapie_quantile model found for week{i} in {dir}.")
         model_file = latest_paths[i][1]
         full_path = os.path.join(dir, model_file)
         loaded_mapie.append(joblib.load(full_path))
@@ -417,7 +449,12 @@ def load_models_auto(
     return loaded_mapie
 
 
-def custom_log_likelihood(estimator, X, y_true, cv_data, station_stats, alpha=.1):
+def custom_log_likelihood(estimator,
+                          X,
+                          y_true,
+                          cv_data,
+                          station_stats,
+                          alpha=.1):
     """
     Custom log-likelihood scoring function.
 
@@ -469,8 +506,10 @@ def custom_log_likelihood(estimator, X, y_true, cv_data, station_stats, alpha=.1
     )
 
     # Optionally, print some diagnostics.
-    coverage_s = np.mean((y_true_std >= y_lower_std) & (y_true_std <= y_upper_std))
-    interval_size_s = np.mean(y_upper_std - y_lower_std)
-    print(f"Fold: coverage = {coverage_s:.3f}, interval size = {interval_size_s:.3f}")
+    cov = np.mean(
+        (y_true_std >= y_lower_std) & (y_true_std <= y_upper_std))
+    i_size = np.mean(y_upper_std - y_lower_std)
+    print(
+        f"Fold: coverage = {cov:.3f}, interval size = {i_size:.3f}")
 
     return nll_s

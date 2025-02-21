@@ -9,7 +9,7 @@ def create_predict_function(
     """
     Creates a prediction function based on the specified model type.
 
-    Args:
+    Parameters:
         model_list (List[Any]): A list of trained models.
         i (int): The index of the model to use from the list.
         model (str): The type of model, either 'mapie' or other types.
@@ -34,14 +34,14 @@ def create_quantile_function(
     """
     Creates a quantile prediction function based on the specified model type.
 
-    Args:
+    Parameters:
         model_list (List[Any]): A list of trained models.
         i (int): The index of the model to use from the list.
         model (str): The type of model, either 'mapie' or 'qrf'.
         alpha (float): The confidence level for the quantile prediction.
 
     Returns:
-        Callable: A function that takes input data X 
+        Callable: A function that takes input data X
         and returns quantile predictions.
     """
     def predict_quantile(X):

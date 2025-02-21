@@ -9,12 +9,11 @@ def load_hydro_data(area, dir):
     Load hydro area data for a given Level of the hydrographic network.
 
     Parameters:
-      - area (str): France or Brazil
-      - dataset_dir (str): Base directory containing the data
+      area (str): France or Brazil
+      dataset_dir (str): Base directory containing the data
 
     Returns:
-      - dict: A dictionary containing the GeoDataFrames for 'region',
-      'sector', 'sub_sector' and 'zone'
+      dict: A dictionary containing 4 hydrographic levels
     """
     path = f"{dir}{area}/static_data/hydro_areas/"
 
@@ -46,11 +45,11 @@ def read_soil_data(area, dir):
     Read soil data for a given area.
 
     Parameters:
-      - area (str): France or Brazil
-      - dir (str): Base directory containing the data
+      area (str): France or Brazil
+      dir (str): Base directory containing the data
 
     Returns:
-      - xarray.Dataset: The soil data
+      xarray.Dataset: The soil data
     """
     path = f"{dir}{area}/static_data/soil"
     soil_file = f"{path}/{area}_soil_data.nc"
@@ -62,11 +61,11 @@ def read_altitude_data(area, dir):
     Read altitude data (DEM) for a given area.
 
     Parameters:
-      - area (str): France or Brazil
-      - dir (str): Base directory containing the data
+      area (str): France or Brazil
+      dir (str): Base directory containing the data
 
     Returns:
-      - xarray.DataArray: The altitude data
+      xarray.DataArray: The altitude data
     """
     path = f"{dir}{area}/static_data/altitude_DEM/output_SRTMGL1.tif"
     dem = rioxarray.open_rasterio(path, masked=True).squeeze()
@@ -78,12 +77,12 @@ def load_meteo_data(area, meteo_type, dir):
     Load meteo data for a given area and type.
 
     Parameters:
-      - area (str) : France or Brazil
-      - meteo_type (str) : Type of data (the key used in `datasets`)
-      - dir (str) : Base directory containing the data
+      area (str) : France or Brazil
+      meteo_type (str) : Type of data (the key used in `datasets`)
+      dir (str) : Base directory containing the data
 
     Returns :
-      - dict : A dictionary containing the DataArrays for:
+      dict : A dictionary containing the xArrays for:
           - 'precipitations'
           - 'temperatures'
           - 'soil_moisture'
@@ -108,13 +107,13 @@ def load_station_info(area, meteo_type, dir):
     Load station info for a given area and type.
 
     Paramètres :
-      - area (str) : France or Brazil
-      - meteo_type (str) : Type of data (the key used in `datasets`)
-      - dataset_dir (str) : Base directory containing the data
+      area (str) : France or Brazil
+      meteo_type (str) : Type of data (the key used in `datasets`)
+      dataset_dir (str) : Base directory containing the data
 
     Returns :
-      - pd.DataFrame : DataFrame of stations with renamed columns
-      and updated altitude.
+      pd.DataFrame : DataFrame of stations with renamed columns
+        and updated altitude.
     """
     path = f"{dir}{area}/{meteo_type}/waterflow/station_info.csv"
     df = pd.read_csv(path, sep=",")
@@ -134,13 +133,13 @@ def load_water_flows(area, meteo_type, dir):
     Load water flows for a given area and type.
 
     Paramètres :
-      - area (str) : France or Brazil
-      - meteo_type (str) : Type of data (the key used in `datasets`)
-      - dataset_dir (str) : Base directory containing the data
+      area (str): France or Brazil
+      meteo_type (str): Type of data (the key used in `datasets`)
+      dataset_dir (str): Base directory containing the data
 
     Returns :
-      - pd.DataFrame : DataFrame of water flows with the 'ObsDate'
-      column correctly formatted.
+      pd.DataFrame : DataFrame of water flows with the 'ObsDate'
+        column correctly formatted.
     """
 
     path = f"{dir}{area}/{meteo_type}/waterflow/waterflow_data.csv"
