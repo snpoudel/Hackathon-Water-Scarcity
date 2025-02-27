@@ -385,7 +385,6 @@ def compare_models_per_station(
             y_true_std=y_true_std,
             y_pred_std=y_pred_std,
             stations=station_code,
-            y_pred_intervals=y_pred_intervals,
             y_pred_lower_std=y_pred_lower_std,
             y_pred_upper_std=y_pred_upper_std
         )
@@ -404,7 +403,7 @@ def compare_models_per_station(
 
 
 def load_models_auto(
-    model_name: str,
+    mn: str,
     dir: str = "../../models/"
 ) -> List[any]:
     """
@@ -412,7 +411,7 @@ def load_models_auto(
     for week0, week1, and week2 from the specified directory.
 
     Parameters:
-        model_name (str): The base model name to search for
+        mn (str): The base model name to search for
         (e.g., "mapie_quantile").
         dir (str): Directory where models are stored.
 
@@ -420,8 +419,8 @@ def load_models_auto(
     - List of loaded models in the order [week0, week1, week2].
     """
 
-    pattern_str = rf"^{model_name}_(\d{{4}}-\d{{2}}-\d{{2}}_\d{{2}}-\d{{2}}-\d{{2}})_week_([0-9]).pkl$"
-    pattern = re.compile(pattern_str)
+    p = rf"^{mn}_(\d{{4}}-\d{{2}}-\d{{2}}_\d{{2}}-\d{{2}}-\d{{2}})_week_([0-9]).pkl$"
+    pattern = re.compile(p)
     latest_paths = {}
 
     for fname in os.listdir(dir):
