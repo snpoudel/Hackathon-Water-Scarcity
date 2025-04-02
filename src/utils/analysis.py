@@ -1,4 +1,5 @@
 from typing import Callable, List, Any
+import numpy as np
 
 
 def create_predict_function(
@@ -20,6 +21,12 @@ def create_predict_function(
     def predict(X):
         if model == "mapie":
             return model_list[i].predict(X)[0]
+        elif model == "deep_ensemble":
+            y_pred_deep = []
+            for m in model_list[i]:
+                y_pred_deep.append(m.predict(X, verbose=0))
+            y_pred_deep = np.array(y_pred_deep)
+            return np.mean(y_pred_deep, axis=0)
         else:
             return model_list[i].predict(X)
     return predict
@@ -49,5 +56,14 @@ def create_quantile_function(
             return models[i].predict(X)[1]
         elif model == "qrf":
             return models[i].predict(X, quantiles=[alpha / 2, 1 - alpha / 2])
+        elif model == "deep_ensemble":
+            y_pred_deep = []
+            for m in models[i]:
+                y_pred_deep.append(m.predict(X, verbose=0))
+            y_pred_deep = np.array(y_pred_deep)
+            y_pred_deep = np.quantile(y_pred_deep,
+                                      [alpha / 2, 1 - alpha / 2],
+                                      axis=0)
+            return y_pred_deep.T[0, :, :]
         raise ValueError(f"Unsupported model type: {model}")
     return predict_quantile

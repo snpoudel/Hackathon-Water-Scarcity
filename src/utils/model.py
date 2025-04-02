@@ -13,6 +13,9 @@ import joblib
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from .helpers import save_or_create
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Input
+from tensorflow.keras.optimizers import Adam
 
 
 def standardize_values(y: np.ndarray,
@@ -316,7 +319,6 @@ def generate_boxplots(
     ax1.set_title("Per-Station Scaled Gaussian Log-Likelihood")
     ax1.set_xlabel("Model")
     ax1.set_ylabel("Scaled GLL")
-    ax1.set_ylim(0, 5)
     fig1.suptitle(title)
     plt.tight_layout()
     if display:
@@ -512,3 +514,16 @@ def custom_log_likelihood(estimator,
         f"Fold: coverage = {cov:.3f}, interval size = {i_size:.3f}")
 
     return nll_s
+
+
+def create_deep_model(input_shape: Tuple[int]):
+    """Define a simple deep learning model for regression."""
+    model = Sequential([
+        Input(shape=input_shape),
+        Dense(64, activation='relu'),
+        Dropout(0.2),
+        Dense(64, activation='relu'),
+        Dense(1, activation='linear')  # regression output
+    ])
+    model.compile(optimizer=Adam(learning_rate=0.001), loss='mse')
+    return model
