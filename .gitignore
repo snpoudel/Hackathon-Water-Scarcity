@@ -1,3 +1,5 @@
+#ignore the virtual environment folder
+venv-hackathon/
 # Ignore the data folder and all its subdirectories and files
 data/
 
